@@ -76,7 +76,13 @@ RUN --mount=type=secret,id=STEAM_USERNAME \
     bash "${STEAMCMD_DIR}/steamcmd.sh" \
       +force_install_dir "${SERVER_DIR}" \
       +${LOGIN_ARGS} \
-      +@sSteamCmdForcePlatformType ${PLATFORM} \
+      +@sSteamCmdForcePlatformType windows \
+      +app_update 222860 validate \
+      +quit || exit 1 && \
+    bash "${STEAMCMD_DIR}/steamcmd.sh" \
+      +force_install_dir "${SERVER_DIR}" \
+      +${LOGIN_ARGS} \
+      +@sSteamCmdForcePlatformType linux \
       +app_update 222860 validate \
       +quit || exit 1 && \
     # 移除不再需要的明文凭证
