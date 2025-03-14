@@ -1,43 +1,42 @@
-# Stage 1: 构建更新版服务器（builder 阶段）
+# syntax=docker/dockerfile:1.2
+# ========= Stage 1: Builder 阶段 =========
 FROM debian:12-slim AS builder
 LABEL org.opencontainers.image.source="https://github.com/ahdg6/l4d2_docker"
 LABEL L4D2_VERSION=2243
 
-# 设置基础语言环境变量
+ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     LANGUAGE=C.UTF-8
 
-# 定义用户及目录相关环境变量
 ENV STEAM_USER=steam \
     HOME_DIR=/home/${STEAM_USER} \
     SERVER_DIR=${HOME_DIR}/l4d2server \
     GAME_DIR=${SERVER_DIR}/left4dead2
 
-# 定义构建参数（可通过 --build-arg 传入）
 ARG STEAM_USERNAME_ARG=""
 ARG STEAM_PASSWORD_ARG=""
 
-# 安装依赖、创建用户并清理缓存
+# 安装依赖：包含 wget、32位库、ca-certificates 及 bash（确保 steamcmd 能用 bash 运行）
 RUN apt-get update && \
-    apt-get install -y wget lib32gcc-s1 ca-certificates && \
+    apt-get install -y wget lib32gcc-s1 ca-certificates bash && \
     adduser --home ${HOME_DIR} --disabled-password --shell /bin/bash --gecos "user for running steam" --quiet ${STEAM_USER} && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# 以 root 用户创建缓存目录并赋予 steam 用户权限
+# 以 root 创建 steamcmd 缓存目录，并赋予 steam 用户权限
 USER root
 RUN mkdir -p /steamcmd-cache && chown ${STEAM_USER}:${STEAM_USER} /steamcmd-cache
 
-# 在 root 下生成 fallback 文件到 HOME_DIR，并设置正确权限
+# 在 root 下生成 fallback 文件（便于本地或 CI 使用 ARG 传入凭证）
 RUN echo "$STEAM_USERNAME_ARG" > ${HOME_DIR}/steam_username_fallback && \
     echo "$STEAM_PASSWORD_ARG" > ${HOME_DIR}/steam_password_fallback && \
     chown ${STEAM_USER}:${STEAM_USER} ${HOME_DIR}/steam_username_fallback ${HOME_DIR}/steam_password_fallback
 
-# 切换回 steam 用户并设置工作目录
+# 切换回 steam 用户，并设置工作目录
 USER ${STEAM_USER}
 WORKDIR ${HOME_DIR}
 
-# 利用 BuildKit cache 挂载下载 steamcmd（仅在缓存不存在时下载）
+# 下载 SteamCMD（利用 BuildKit cache 避免重复下载）
 RUN --mount=type=cache,target=/steamcmd-cache,uid=1000,gid=1000 \
     if [ ! -f /steamcmd-cache/steamcmd_linux.tar.gz ]; then \
       wget -O /steamcmd-cache/steamcmd_linux.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz; \
@@ -49,7 +48,8 @@ RUN --mount=type=cache,target=/steamcmd-cache,uid=1000,gid=1000 \
     [ -d linux32 ] && cp -r linux32 ${HOME_DIR}/ || true && \
     rm -rf /tmp/steamcmd_linux.tar.gz steamcmd.sh linux32
 
-# 使用 steamcmd 更新 Left 4 Dead 2 服务器
+# 使用 SteamCMD 更新 Left 4 Dead 2 服务器（下载游戏文件）
+# 利用 BuildKit secret 传入凭证（若未提供则使用 fallback 文件），并在下载后清除不必要的文件
 RUN --mount=type=secret,id=STEAM_USERNAME \
     --mount=type=secret,id=STEAM_PASSWORD \
     if [ -f /run/secrets/STEAM_USERNAME ]; then \
@@ -73,42 +73,41 @@ RUN --mount=type=secret,id=STEAM_USERNAME \
     fi && \
     rm -rf ${GAME_DIR}/host.txt ${GAME_DIR}/motd.txt
 
-# Stage 2: 最终镜像
+# ========= Stage 2: 最终运行镜像 =========
 FROM debian:12-slim
 LABEL org.opencontainers.image.source="https://github.com/HoshinoRei/l4d2server-docker"
 LABEL L4D2_VERSION=2243
 
-# 设置基础语言环境变量
+ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     LANGUAGE=C.UTF-8
 
-# 定义用户及目录相关环境变量
 ENV STEAM_USER=steam \
     HOME_DIR=/home/${STEAM_USER} \
     SERVER_DIR=${HOME_DIR}/l4d2server \
     GAME_DIR=${SERVER_DIR}/left4dead2
 
-# 安装运行时依赖、创建用户并清理缓存
-RUN apt-get update && apt-get install -y lib32gcc-s1 && \
+# 安装运行时依赖（lib32gcc-s1 和 bash），清理缓存，并创建运行用户
+RUN apt-get update && apt-get install -y lib32gcc-s1 bash && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     adduser --home ${HOME_DIR} --disabled-password --shell /bin/bash --gecos "user for running steam" --quiet ${STEAM_USER}
 
 USER ${STEAM_USER}
 WORKDIR ${HOME_DIR}
 
-# 从 builder 阶段复制已更新的服务器文件
+# 从 builder 阶段复制已下载的服务器文件
 COPY --from=builder ${SERVER_DIR} ${SERVER_DIR}
 
-# 开放必要端口
+# 暴露必要的端口
 EXPOSE 27015 27015/udp
 
-# 定义持久化数据卷，同时挂载 /plugins 目录用于外部传入插件、地图等数据
+# 定义持久化数据卷，方便用户外部挂载插件、配置等文件
 VOLUME ["${GAME_DIR}/addons", "${GAME_DIR}/cfg/server.cfg", "${GAME_DIR}/motd.txt", "${GAME_DIR}/host.txt", "/plugins"]
 
-# 拷贝入口脚本并赋予执行权限（利用 BuildKit 的 --chmod 选项）
+# 拷贝入口脚本，并设置执行权限
+# 该步骤在最终镜像的最后，修改 entrypoint 不会影响前面的游戏文件下载层缓存
 COPY --chmod=+x entrypoint.sh /entrypoint.sh
 
-# 设置入口脚本和默认启动参数
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["-secure", "+exec", "server.cfg", "+map", "c1m1_hotel", "-port", "27015"]
