@@ -109,25 +109,35 @@ ENV GAME_DIR=/home/steam/l4d2server/left4dead2
 # 安装运行时依赖，创建运行用户
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        lib32gcc-s1 \
+        lib32gcc-s1 lib32stdc++6 \
         bash && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     adduser --home "${HOME_DIR}" --disabled-password --shell /bin/bash --gecos "user for running steam" --quiet "${STEAM_USER}"
 
+USER root
+# 先复制整个服务器目录
+COPY --from=builder "${SERVER_DIR}" "${SERVER_DIR}"
+
+# 复制 SteamCMD 整个目录，保证里面有 linux32/steamclient.so
+COPY --from=builder /home/steam/steamcmd /home/steam/steamcmd
+
+# 在 ~.steam/sdk32 下做符号链接，让 SRCDS 能找到 steamclient.so
+RUN mkdir -p /home/steam/.steam/sdk32 \
+ && ln -s /home/steam/steamcmd/linux32/steamclient.so /home/steam/.steam/sdk32/steamclient.so
+
+# entrypoint.sh 相关
+COPY entrypoint.sh /entrypoint.sh
+RUN chown steam:steam /entrypoint.sh && \
+    chmod +x /entrypoint.sh
+	
 USER "${STEAM_USER}"
 WORKDIR "${HOME_DIR}"
-
-# 从 builder 阶段复制已下载的服务器文件
-COPY --from=builder "${SERVER_DIR}" "${SERVER_DIR}"
 
 # 服务器常用端口
 EXPOSE 27015 27015/udp
 
 # 定义数据卷：包括常见的插件、配置、motd/host 等
-VOLUME ["${GAME_DIR}/addons", "${GAME_DIR}/cfg/server.cfg", "${GAME_DIR}/motd.txt", "${GAME_DIR}/host.txt", "/plugins"]
-
-# 拷贝入口脚本（修改 entrypoint 不会触发重新下载游戏）
-COPY --chmod='+x' entrypoint.sh /entrypoint.sh
+# VOLUME ["${GAME_DIR}/addons", "${GAME_DIR}/cfg/server.cfg", "${GAME_DIR}/motd.txt", "${GAME_DIR}/host.txt", "/plugins"]
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["-secure", "+exec", "server.cfg", "+map", "c1m1_hotel", "-port", "27015"]
