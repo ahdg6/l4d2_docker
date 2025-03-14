@@ -38,7 +38,7 @@ USER ${STEAM_USER}
 WORKDIR ${HOME_DIR}
 
 # 利用 BuildKit cache 挂载下载 steamcmd（仅在缓存不存在时下载）
-RUN --mount=type=cache,target=/steamcmd-cache \
+RUN --mount=type=cache,target=/steamcmd-cache,uid=1000,gid=1000 \
     if [ ! -f /steamcmd-cache/steamcmd_linux.tar.gz ]; then \
       wget -O /steamcmd-cache/steamcmd_linux.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz; \
     fi && \
