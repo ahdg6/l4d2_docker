@@ -14,7 +14,7 @@ ENV STEAM_USER=steam \
     SERVER_DIR=${HOME_DIR}/l4d2server \
     GAME_DIR=${SERVER_DIR}/left4dead2
 
-# 定义构建参数（本地构建时可通过 --build-arg 传入）
+# 定义构建参数（可通过 --build-arg 传入）
 ARG STEAM_USERNAME_ARG=""
 ARG STEAM_PASSWORD_ARG=""
 
@@ -28,14 +28,14 @@ RUN apt-get update && \
 USER root
 RUN mkdir -p /steamcmd-cache && chown ${STEAM_USER}:${STEAM_USER} /steamcmd-cache
 
-# 切换回 steam 用户并设置工作目录，确保目录拥有写权限
+# 在 root 下生成 fallback 文件到 HOME_DIR，并设置正确权限
+RUN echo "$STEAM_USERNAME_ARG" > ${HOME_DIR}/steam_username_fallback && \
+    echo "$STEAM_PASSWORD_ARG" > ${HOME_DIR}/steam_password_fallback && \
+    chown ${STEAM_USER}:${STEAM_USER} ${HOME_DIR}/steam_username_fallback ${HOME_DIR}/steam_password_fallback
+
+# 切换回 steam 用户并设置工作目录
 USER ${STEAM_USER}
 WORKDIR ${HOME_DIR}
-RUN chown -R ${STEAM_USER}:${STEAM_USER} ${HOME_DIR}
-
-# 生成 fallback 文件（当 BuildKit secrets 不存在时使用）
-RUN echo "$STEAM_USERNAME_ARG" > steam_username_fallback && \
-    echo "$STEAM_PASSWORD_ARG" > steam_password_fallback
 
 # 利用 BuildKit cache 挂载下载 steamcmd（仅在缓存不存在时下载）
 RUN --mount=type=cache,target=/steamcmd-cache \
@@ -52,12 +52,12 @@ RUN --mount=type=secret,id=STEAM_USERNAME \
     if [ -f /run/secrets/STEAM_USERNAME ]; then \
        STEAM_USERNAME=$(cat /run/secrets/STEAM_USERNAME); \
     else \
-       STEAM_USERNAME=$(cat steam_username_fallback); \
+       STEAM_USERNAME=$(cat ${HOME_DIR}/steam_username_fallback); \
     fi && \
     if [ -f /run/secrets/STEAM_PASSWORD ]; then \
        STEAM_PASSWORD=$(cat /run/secrets/STEAM_PASSWORD); \
     else \
-       STEAM_PASSWORD=$(cat steam_password_fallback); \
+       STEAM_PASSWORD=$(cat ${HOME_DIR}/steam_password_fallback); \
     fi && \
     if [ -n "$STEAM_USERNAME" ] && [ -n "$STEAM_PASSWORD" ]; then \
         echo "Using provided Steam credentials"; \
@@ -103,7 +103,7 @@ EXPOSE 27015 27015/udp
 # 定义持久化数据卷，同时挂载 /plugins 目录用于外部传入插件、地图等数据
 VOLUME ["${GAME_DIR}/addons", "${GAME_DIR}/cfg/server.cfg", "${GAME_DIR}/motd.txt", "${GAME_DIR}/host.txt", "/plugins"]
 
-# 拷贝入口脚本并赋予执行权限（使用 BuildKit 的 --chmod 选项）
+# 拷贝入口脚本并赋予执行权限（利用 BuildKit 的 --chmod 选项）
 COPY --chmod=+x entrypoint.sh /entrypoint.sh
 
 # 设置入口脚本和默认启动参数
