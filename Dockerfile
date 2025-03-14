@@ -17,7 +17,7 @@ ENV STEAM_USER=steam \
 ARG STEAM_USERNAME_ARG=""
 ARG STEAM_PASSWORD_ARG=""
 
-# 安装依赖：包含 wget、32位库、ca-certificates 及 bash（确保 steamcmd 能用 bash 运行）
+# 安装依赖，包含 wget、lib32gcc-s1、ca-certificates 和 bash
 RUN apt-get update && \
     apt-get install -y wget lib32gcc-s1 ca-certificates bash && \
     adduser --home ${HOME_DIR} --disabled-password --shell /bin/bash --gecos "user for running steam" --quiet ${STEAM_USER} && \
