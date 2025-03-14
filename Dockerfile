@@ -42,9 +42,12 @@ RUN --mount=type=cache,target=/steamcmd-cache,uid=1000,gid=1000 \
     if [ ! -f /steamcmd-cache/steamcmd_linux.tar.gz ]; then \
       wget -O /steamcmd-cache/steamcmd_linux.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz; \
     fi && \
-    cp /steamcmd-cache/steamcmd_linux.tar.gz . && \
+    cp /steamcmd-cache/steamcmd_linux.tar.gz /tmp/ && \
+    cd /tmp && \
     tar -xzf steamcmd_linux.tar.gz && \
-    rm -rf steamcmd_linux.tar.gz
+    cp steamcmd.sh ${HOME_DIR}/ && \
+    [ -d linux32 ] && cp -r linux32 ${HOME_DIR}/ || true && \
+    rm -rf /tmp/steamcmd_linux.tar.gz steamcmd.sh linux32
 
 # 使用 steamcmd 更新 Left 4 Dead 2 服务器
 RUN --mount=type=secret,id=STEAM_USERNAME \
