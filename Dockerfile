@@ -28,9 +28,10 @@ RUN apt-get update && \
 USER root
 RUN mkdir -p /steamcmd-cache && chown ${STEAM_USER}:${STEAM_USER} /steamcmd-cache
 
-# 切换回 steam 用户并设置工作目录
+# 切换回 steam 用户并设置工作目录，确保目录拥有写权限
 USER ${STEAM_USER}
 WORKDIR ${HOME_DIR}
+RUN chown -R ${STEAM_USER}:${STEAM_USER} ${HOME_DIR}
 
 # 生成 fallback 文件（当 BuildKit secrets 不存在时使用）
 RUN echo "$STEAM_USERNAME_ARG" > steam_username_fallback && \
