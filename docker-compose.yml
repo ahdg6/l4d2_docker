@@ -3,14 +3,13 @@ services:
   l4d2server:
     container_name: l4d2server
     # 使用本地构建或在线镜像
-    # image: ghcr.io/ahdg6/l4d2server
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        # 本地构建时通过环境变量（或 .env 文件）传入
-        STEAM_USERNAME_ARG: ${STEAM_USERNAME}
-        STEAM_PASSWORD_ARG: ${STEAM_PASSWORD}
+    image: ghcr.io/ahdg6/l4d2server:latest
+    # build:
+      # context: .
+      # dockerfile: Dockerfile
+      # args:
+        # STEAM_USERNAME_ARG: ${STEAM_USERNAME}
+        # STEAM_PASSWORD_ARG: ${STEAM_PASSWORD}
     ports:
       - "27015:27015"
       - "27015:27015/udp"
