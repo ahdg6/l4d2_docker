@@ -27,12 +27,12 @@ RUN apt-get update && \
 USER root
 RUN mkdir -p /steamcmd-cache && chown ${STEAM_USER}:${STEAM_USER} /steamcmd-cache
 
-# 在 root 下生成 fallback 文件（便于本地或 CI 使用 ARG 传入凭证）
+# 在 root 下生成 fallback 文件，便于传入凭证（可通过 ARG 覆盖）
 RUN echo "$STEAM_USERNAME_ARG" > ${HOME_DIR}/steam_username_fallback && \
     echo "$STEAM_PASSWORD_ARG" > ${HOME_DIR}/steam_password_fallback && \
     chown ${STEAM_USER}:${STEAM_USER} ${HOME_DIR}/steam_username_fallback ${HOME_DIR}/steam_password_fallback
 
-# 切换回 steam 用户，并设置工作目录
+# 切换回 steam 用户并设置工作目录
 USER ${STEAM_USER}
 WORKDIR ${HOME_DIR}
 
@@ -44,12 +44,11 @@ RUN --mount=type=cache,target=/steamcmd-cache,uid=1000,gid=1000 \
     cp /steamcmd-cache/steamcmd_linux.tar.gz /tmp/ && \
     cd /tmp && \
     tar -xzf steamcmd_linux.tar.gz && \
-    cp steamcmd.sh ${HOME_DIR}/ && \
+    cp steamcmd.sh ${HOME_DIR}/ && chmod +x ${HOME_DIR}/steamcmd.sh && \
     [ -d linux32 ] && cp -r linux32 ${HOME_DIR}/ || true && \
     rm -rf /tmp/steamcmd_linux.tar.gz steamcmd.sh linux32
 
-# 使用 SteamCMD 更新 Left 4 Dead 2 服务器（下载游戏文件）
-# 利用 BuildKit secret 传入凭证（若未提供则使用 fallback 文件），并在下载后清除不必要的文件
+# 使用 SteamCMD 下载更新 Left 4 Dead 2 服务器文件
 RUN --mount=type=secret,id=STEAM_USERNAME \
     --mount=type=secret,id=STEAM_PASSWORD \
     if [ -f /run/secrets/STEAM_USERNAME ]; then \
@@ -64,18 +63,18 @@ RUN --mount=type=secret,id=STEAM_USERNAME \
     fi && \
     if [ -n "$STEAM_USERNAME" ] && [ -n "$STEAM_PASSWORD" ]; then \
         echo "Using provided Steam credentials"; \
-        ./steamcmd.sh +force_install_dir ${SERVER_DIR} +login $STEAM_USERNAME $STEAM_PASSWORD +@sSteamCmdForcePlatformType windows +app_update 222860 validate +quit && \
-        ./steamcmd.sh +force_install_dir ${SERVER_DIR} +login $STEAM_USERNAME $STEAM_PASSWORD +@sSteamCmdForcePlatformType linux +app_update 222860 validate +quit; \
+        bash ./steamcmd.sh +force_install_dir ${SERVER_DIR} +login $STEAM_USERNAME $STEAM_PASSWORD +@sSteamCmdForcePlatformType windows +app_update 222860 validate +quit && \
+        bash ./steamcmd.sh +force_install_dir ${SERVER_DIR} +login $STEAM_USERNAME $STEAM_PASSWORD +@sSteamCmdForcePlatformType linux +app_update 222860 validate +quit; \
     else \
         echo "Using anonymous login"; \
-        ./steamcmd.sh +force_install_dir ${SERVER_DIR} +login anonymous +@sSteamCmdForcePlatformType windows +app_update 222860 validate +quit && \
-        ./steamcmd.sh +force_install_dir ${SERVER_DIR} +login anonymous +@sSteamCmdForcePlatformType linux +app_update 222860 validate +quit; \
+        bash ./steamcmd.sh +force_install_dir ${SERVER_DIR} +login anonymous +@sSteamCmdForcePlatformType windows +app_update 222860 validate +quit && \
+        bash ./steamcmd.sh +force_install_dir ${SERVER_DIR} +login anonymous +@sSteamCmdForcePlatformType linux +app_update 222860 validate +quit; \
     fi && \
     rm -rf ${GAME_DIR}/host.txt ${GAME_DIR}/motd.txt
 
 # ========= Stage 2: 最终运行镜像 =========
 FROM debian:12-slim
-LABEL org.opencontainers.image.source="https://github.com/HoshinoRei/l4d2server-docker"
+LABEL org.opencontainers.image.source="https://github.com/ahdg6/l4d2_docker"
 LABEL L4D2_VERSION=2243
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -99,14 +98,13 @@ WORKDIR ${HOME_DIR}
 # 从 builder 阶段复制已下载的服务器文件
 COPY --from=builder ${SERVER_DIR} ${SERVER_DIR}
 
-# 暴露必要的端口
+# 暴露必要端口
 EXPOSE 27015 27015/udp
 
-# 定义持久化数据卷，方便用户外部挂载插件、配置等文件
+# 定义持久化数据卷，方便外部挂载插件、配置等数据
 VOLUME ["${GAME_DIR}/addons", "${GAME_DIR}/cfg/server.cfg", "${GAME_DIR}/motd.txt", "${GAME_DIR}/host.txt", "/plugins"]
 
 # 拷贝入口脚本，并设置执行权限
-# 该步骤在最终镜像的最后，修改 entrypoint 不会影响前面的游戏文件下载层缓存
 COPY --chmod=+x entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
