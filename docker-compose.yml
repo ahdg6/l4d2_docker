@@ -18,16 +18,9 @@ services:
     tty: true
     volumes:
       - ./data/addons/:/home/steam/l4d2server/left4dead2/addons/
+      - ./data/cfg/server.cfg:/home/steam/l4d2server/left4dead2/cfg/server.cfg:ro
       - ./data/cfg/:/home/steam/l4d2server/left4dead2/cfg/
       - ./data/host.txt:/home/steam/l4d2server/left4dead2/host.txt:ro
       - ./data/motd.txt:/home/steam/l4d2server/left4dead2/motd.txt:ro
       - ./plugins:/plugins
-    command: [
-      "-insecure",
-      "+hostport", "27015",
-      "+condebug",
-      "+exec", "server.cfg",
-      "-nomaster",
-      "+map", "c1m2_streets",
-      "-tickrate", "96"
-    ]
+    command: "-secure +exec server.cfg +map c1m1_hotel -port 37015 -tickrate 96"
