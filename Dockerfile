@@ -1,64 +1,84 @@
 # syntax=docker/dockerfile:1.2
 
-# ========= Stage 1: Builder 阶段 =========
-FROM debian:12-slim AS builder
-LABEL org.opencontainers.image.source="https://github.com/HoshinoRei/l4d2server-docker"
+###########################################################################
+# =============== 1) base 阶段：公用的依赖 + 用户创建 ======================
+###########################################################################
+FROM debian:12-slim AS base
+
+LABEL org.opencontainers.image.source="https://github.com/ahdg6/l4d2server-docker"
 LABEL L4D2_VERSION=2243
 
-# 基础环境变量
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     LANGUAGE=C.UTF-8
 
-# 明确指定各路径，避免变量嵌套引用失效
+# 安装各阶段都需要的依赖 (bash、lib32gcc-s1 等等)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        bash \
+        ca-certificates \
+        lib32gcc-s1 \
+        lib32stdc++6 \
+        wget \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# 创建 steam 用户和家目录
+RUN adduser --home /home/steam --disabled-password --shell /bin/bash \
+    --gecos "user for running steam" --quiet steam
+
+# 用 root 权限先建一个缓存目录（并授权给 steam）
+RUN mkdir -p /steamcmd-cache && chown steam:steam /steamcmd-cache
+
+# 确保最后阶段依旧是 root 用户（方便在下一个 stage COPY 时处理权限）
+USER root
+
+
+###########################################################################
+# =============== 2) builder 阶段：下载 & 安装 L4D2 服务器 ==================
+###########################################################################
+FROM base AS builder
+
+# 同样的环境变量（方便引用）
 ENV STEAM_USER=steam
 ENV HOME_DIR=/home/steam
 ENV SERVER_DIR=/home/steam/l4d2server
 ENV GAME_DIR=/home/steam/l4d2server/left4dead2
 ENV STEAMCMD_DIR=/home/steam/steamcmd
 
-# 可选：从外部获取 Steam 凭证（如果需要登录非匿名）
+# 可选：从外部传入 Steam 凭证（若需要非匿名登录）
 ARG STEAM_USERNAME_ARG=""
 ARG STEAM_PASSWORD_ARG=""
 
-# 安装构建所需依赖，创建 steam 用户
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        wget \
-        lib32gcc-s1 \
-        ca-certificates \
-        bash && \
-    adduser --home "${HOME_DIR}" --disabled-password --shell /bin/bash --gecos "user for running steam" --quiet "${STEAM_USER}" && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# 切回 root，创建缓存目录并赋予权限
-USER root
-RUN mkdir -p /steamcmd-cache && chown "${STEAM_USER}":"${STEAM_USER}" /steamcmd-cache
-
-# 生成 fallback 凭证文件，并改回 steam 用户
-USER "${STEAM_USER}"
+# 切回 steam 用户来执行实际下载
+USER steam
 WORKDIR "${HOME_DIR}"
 RUN echo "${STEAM_USERNAME_ARG}" > "${HOME_DIR}/steam_username_fallback" && \
     echo "${STEAM_PASSWORD_ARG}" > "${HOME_DIR}/steam_password_fallback"
 
 # 缓存 steamcmd 并解压
+#
+# 2) 下载 SteamCMD 压缩包并解压
+#    使用 BuildKit cache 避免重复下载
+#
 RUN --mount=type=cache,target=/steamcmd-cache,uid=1000,gid=1000 \
     if [ ! -f /steamcmd-cache/steamcmd_linux.tar.gz ]; then \
+      echo "[*] 未发现 steamcmd_linux.tar.gz，开始下载..."; \
       wget -O /steamcmd-cache/steamcmd_linux.tar.gz \
         https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz; \
+    else \
+      echo "[*] 发现已有缓存 /steamcmd-cache/steamcmd_linux.tar.gz，直接复用..."; \
     fi && \
     mkdir -p "${STEAMCMD_DIR}" && \
-    cp /steamcmd-cache/steamcmd_linux.tar.gz /tmp/ && \
-    cd "${STEAMCMD_DIR}" && \
-    tar -xzf /tmp/steamcmd_linux.tar.gz && \
-    chmod +x steamcmd.sh && \
-    rm -rf /tmp/steamcmd_linux.tar.gz
+    cp /steamcmd-cache/steamcmd_linux.tar.gz /tmp/steamcmd_linux.tar.gz && \
+    tar -xzf /tmp/steamcmd_linux.tar.gz -C "${STEAMCMD_DIR}" && \
+    rm -f /tmp/steamcmd_linux.tar.gz && \
+    chmod +x "${STEAMCMD_DIR}/steamcmd.sh"
 
 #
-# 登录 Steam 并下载 L4D2 服务器文件
-# 1) 如果有 SECRET (Docker build secrets) 则优先读取
-# 2) 否则使用 fallback 中的 ARG 值；若都没有则匿名登录
+# 3) 用 SteamCMD 下载 L4D2 Dedicated Server
+#    - 必须先下载 Windows 版，再下载 Linux 版 (V 社某些 BUG 的 workaround)
+#    - 同样配合 BuildKit cache 避免重复拉取
 #
 RUN --mount=type=secret,id=STEAM_USERNAME \
     --mount=type=secret,id=STEAM_PASSWORD \
@@ -66,78 +86,78 @@ RUN --mount=type=secret,id=STEAM_USERNAME \
     STEAM_USERNAME="$( [ -f /run/secrets/STEAM_USERNAME ] && cat /run/secrets/STEAM_USERNAME || cat "${HOME_DIR}/steam_username_fallback" )" && \
     STEAM_PASSWORD="$( [ -f /run/secrets/STEAM_PASSWORD ] && cat /run/secrets/STEAM_PASSWORD || cat "${HOME_DIR}/steam_password_fallback" )" && \
     if [ -n "$STEAM_USERNAME" ] && [ -n "$STEAM_PASSWORD" ]; then \
-      echo "Using provided Steam credentials"; \
+      echo "Using provided Steam credentials: $STEAM_USERNAME"; \
       LOGIN_ARGS="login $STEAM_USERNAME $STEAM_PASSWORD"; \
     else \
       echo "Using anonymous login"; \
       LOGIN_ARGS="login anonymous"; \
     fi && \
-    # 注意平台变量 PLATFORM 需提前定义或在 build 时设置
+    echo "[*] 下载/更新 Windows 版服务器..." && \
     bash "${STEAMCMD_DIR}/steamcmd.sh" \
-      +force_install_dir "${SERVER_DIR}" \
-      +${LOGIN_ARGS} \
-      +@sSteamCmdForcePlatformType windows \
-      +app_update 222860 validate \
-      +quit || exit 1 && \
+         +force_install_dir "${SERVER_DIR}" \
+         +${LOGIN_ARGS} \
+         +@sSteamCmdForcePlatformType windows \
+         +app_update 222860 validate \
+         +quit || exit 1 && \
+    echo "[*] 下载/更新 Linux 版服务器..." && \
     bash "${STEAMCMD_DIR}/steamcmd.sh" \
-      +force_install_dir "${SERVER_DIR}" \
-      +${LOGIN_ARGS} \
-      +@sSteamCmdForcePlatformType linux \
-      +app_update 222860 validate \
-      +quit || exit 1 && \
-    # 移除不再需要的明文凭证
-    rm -f "${HOME_DIR}/steam_username_fallback" "${HOME_DIR}/steam_password_fallback" && \
-    # 删除不需要的默认 motd/host 文件
-    rm -f "${GAME_DIR}/host.txt" "${GAME_DIR}/motd.txt"
+         +force_install_dir "${SERVER_DIR}" \
+         +${LOGIN_ARGS} \
+         +@sSteamCmdForcePlatformType linux \
+         +app_update 222860 validate \
+         +quit || exit 1 && \
+    rm -f steam_username_fallback steam_password_fallback && \
+    # 删掉不需要的 motd/host 文件
+    rm -f "${GAME_DIR}/motd.txt" "${GAME_DIR}/host.txt"
 
-# ========= Stage 2: Final 运行镜像 =========
-FROM debian:12-slim
-LABEL org.opencontainers.image.source="https://github.com/HoshinoRei/l4d2server-docker"
-LABEL L4D2_VERSION=2243
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    LANGUAGE=C.UTF-8
+###########################################################################
+# =============== 3) final 阶段：拷贝产物 + 准备运行环境 ====================
+###########################################################################
+FROM base
 
-# 同样明确指定路径
+# 复制一遍相同环境变量
 ENV STEAM_USER=steam
 ENV HOME_DIR=/home/steam
 ENV SERVER_DIR=/home/steam/l4d2server
 ENV GAME_DIR=/home/steam/l4d2server/left4dead2
+ENV STEAMCMD_DIR=/home/steam/steamcmd
 
-# 安装运行时依赖，创建运行用户
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        lib32gcc-s1 lib32stdc++6 \
-        bash && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    adduser --home "${HOME_DIR}" --disabled-password --shell /bin/bash --gecos "user for running steam" --quiet "${STEAM_USER}"
-
+# 以 root 身份复制文件
 USER root
-# 先复制整个服务器目录
+
+# 1) 从 builder 拷贝 L4D2 服务器文件 + steamcmd
 COPY --from=builder "${SERVER_DIR}" "${SERVER_DIR}"
+COPY --from=builder "${STEAMCMD_DIR}" "${STEAMCMD_DIR}"
 
-# 复制 SteamCMD 整个目录，保证里面有 linux32/steamclient.so
-COPY --from=builder /home/steam/steamcmd /home/steam/steamcmd
+# 2) 统一把服务器目录的所有权改成 steam 用户，避免后续写权限问题
+RUN chown -R steam:steam "${SERVER_DIR}" && \
+    chown -R steam:steam "${STEAMCMD_DIR}"
 
-# 在 ~.steam/sdk32 下做符号链接，让 SRCDS 能找到 steamclient.so
-RUN mkdir -p /home/steam/.steam/sdk32 \
- && ln -s /home/steam/steamcmd/linux32/steamclient.so /home/steam/.steam/sdk32/steamclient.so
+# 3) 在 ~/.steam/sdk32 建立符号链接，让 SRCDS 能找到 steamclient.so
+RUN mkdir -p /home/steam/.steam/sdk32 && \
+    ln -s "${STEAMCMD_DIR}/linux32/steamclient.so" /home/steam/.steam/sdk32/steamclient.so && \
+    chown -R steam:steam /home/steam/.steam
 
-# entrypoint.sh 相关
+# 4) 如果想进一步精简镜像，又不打算在容器内更新，可以删除 steamcmd
+# RUN rm -rf "${STEAMCMD_DIR}"
+
+#
+# 复制并设置 entrypoint
+# 你可以自行把这个 entrypoint.sh 放在项目同目录
+#
 COPY entrypoint.sh /entrypoint.sh
-RUN chown steam:steam /entrypoint.sh && \
-    chmod +x /entrypoint.sh
-	
-USER "${STEAM_USER}"
+RUN chown steam:steam /entrypoint.sh && chmod +x /entrypoint.sh
+
+# 切回 steam 用户，设定工作目录
+USER steam
 WORKDIR "${HOME_DIR}"
 
-# 服务器常用端口
+# 暴露常见端口
 EXPOSE 27015 27015/udp
 
-# 定义数据卷：包括常见的插件、配置、motd/host 等
-# VOLUME ["${GAME_DIR}/addons", "${GAME_DIR}/cfg/server.cfg", "${GAME_DIR}/motd.txt", "${GAME_DIR}/host.txt", "/plugins"]
+# 如果想把 cfg/server.cfg、motd.txt 等做成数据卷，也可以加:
+# VOLUME ["${GAME_DIR}/addons", "${GAME_DIR}/cfg/server.cfg", "${GAME_DIR}/motd.txt", "${GAME_DIR}/host.txt"]
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["-secure", "+exec", "server.cfg", "+map", "c1m1_hotel", "-port", "27015"]
