@@ -1,0 +1,83 @@
+"Phrases"
+{
+	"Equipped"
+	{
+		"es"		"Modo de lanzagranadas cambiado a {green}<MODE>{olive}. para cambiar a otro, escribe {green}!flaregun{olive} en el chat."
+	}
+	"MenuTitle"
+	{
+		"es"		"Tipo de bengala"
+	}
+	"TitleDefault"
+	{
+		"es"		"de serie (lanzagranadas)"
+	}
+	"TitleBounce"
+	{
+		"es"		"De rebote (quema, no explosiona)"
+	}
+	"TitleFlare"
+	{
+		"es"		"Bengala (explosion por defecto)"
+	}
+	"TitleHoming"
+	{
+		"es"		"Buscador cohete"
+	}
+	"TitleJump"
+	{
+		"es"		"Arma de salto"
+	}
+	"TitleRemote"
+	{
+		"es"		"Remoto (click derecho)"
+	}
+	"TitleSticky"
+	{
+		"es"		"Bengala pegadiza (no explosiona)"
+	}
+	"TitleSensor"
+	{
+		"es"		"Bomba sensor"
+	}
+	"TitleTimed"
+	{
+		"es"		"Bomba de tiempo"
+	}
+	"TypeDefault"
+	{
+		"es"		"Lanzagranadas de serie sin añadidos y explosión por defecto."
+	}
+	"TypeBounce"
+	{
+		"es"		"Rebota y quema a los infectados y explosivos."
+	}
+	"TypeFlare"
+	{
+		"es"		"Arma bengala con daño y explosión por defecto."
+	}
+	"TypeHoming"
+	{
+		"es"		"Los cohetes se pueden dirigir a donde apuntes."
+	}
+	"TypeJump"
+	{
+		"es"		"Los proyectiles se adhieren a cualquier superficie y te lanzan por el aire cuando saltas sobre ellos y presionas click derecho."
+	}
+	"TypeRemote"
+	{
+		"es"		"Los proyectiles se adhieren a cualquier superficie y explotan cuando presionas click derecho."
+	}
+	"TypeSensor"
+	{
+		"es"		"Los proyectiles se adhieren a cualquier superficie y explotan al detectar cualquier infectado."
+	}
+	"TypeSticky"
+	{
+		"es"		"Los proyectiles se adhieren a cualquier superficie e iluminan el area."
+	}
+	"TypeTimed"
+	{
+		"es"		"Los proyectiles se adhieren a cualquier superficie y explotan despues de <TIME> segundos."
+	}
+}

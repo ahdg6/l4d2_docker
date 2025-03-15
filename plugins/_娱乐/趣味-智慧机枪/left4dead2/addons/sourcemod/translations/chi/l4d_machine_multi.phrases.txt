@@ -1,0 +1,250 @@
+"Phrases"
+{
+	"Common Type"
+	{
+		"chi"		"你部署了 %s 并装填了 %s 弹药！"
+	}
+	"Broken Machine Gun"
+	{
+		"chi"		"炮塔坏了！"
+	}
+	"Ammo Status"
+	{
+		"chi"		"炮塔的弹药：%d"
+	}
+	"Target Reached"
+	{
+		"chi"		"达到目标 %i"
+	}
+	"Remove Turret"
+	{
+		"chi"  "移除炮塔"
+	}
+	"Ammunition Status"
+	{
+		"chi"		"炮塔的弹药：%d"
+	}
+	"Owner's Machine Gun" 
+	{
+		"chi"		"%N 的炮塔坏了"
+	}
+	"Machine Gun Power"
+	{
+		"chi"		"炮塔的健康状况：%d/%d"
+	}
+	"Entity Destroyed By Special Infected"
+	{
+		"chi"		"炮塔被 %N 摧毁了！"
+	}
+	"Finished Ammunition"
+	{
+		"chi"		"炮塔弹药耗尽。使用弹药包补充！"
+	}
+	"Special Type"
+	{
+		"chi"		"你部署了 %s 并装填了 %s 弹药！"
+	}
+	"Can't Pick Up"
+	{
+		"chi"		"无法拾取 %N 的炮塔！"
+	}
+	"Inaccessible Entity"
+	{
+		"chi"		"无法使用"
+	}
+	"Machine Gun Inactive State"
+	{
+		"chi"		"炮塔进入休眠状态！"
+	}
+	"Is Incapacitated" 
+	{
+		"chi"		"%N 无法行动！"
+	}
+	"Is Dead"
+	{
+		"chi"		"%N 死了！"
+	}
+	"Vomited Player"
+	{
+		"chi"		"%N 呕吐玩家！"
+	}
+	"Admin Removed Entity"
+	{
+  		"chi"		"管理员移除了炮塔"
+	}
+	"Use Instructor"
+	{
+		"chi"		"使用教官"
+	}
+	"No Access"
+	{
+		"chi"		"无法访问此功能"
+	}
+	"Model Gatling"
+	{	
+		"chi"	"加特林枪"
+	}
+	"Machine Gun Not Allowed"
+	{
+		"chi"		"不允许部署炮塔"
+	}
+	"Reload Machine Gun"
+	{
+		"chi"		"你的炮塔没弹药了，请补充"
+	}
+	"Reloaded Machine Gun"
+	{
+		"chi"		"炮塔已重新装填！"
+	}
+	"Too Many Machine Guns"
+	{
+		"chi"		"部署的炮塔太多了！（%d/%d）"
+	}
+	"Out Of The Game"
+	{
+		"chi"		"炮塔的拥有者退出了游戏"
+	}
+	"Current Ammo"
+	{
+		"chi"	"炮塔弹药：[%d/%d%%]"
+	}
+	"Plugin Restarted"
+	{
+		"chi"		"插件已重启"
+	}
+	"Without Ammunition"
+	{
+		"chi"		"炮塔没弹药了"
+	}
+	"Machine Gun Limit"
+	{
+		"chi"		"你最多只能部署 %d 个炮塔！"
+	}
+	"Machine Gun Active State" 
+	{
+		"chi"		"炮塔唤醒了！"
+	}
+	"Machine Gun Betrays Infected"
+	{
+		"chi"		"炮塔控制权已恢复！"
+	}
+	"Machine Gun Betrays Survivors"
+	{
+		"chi" 		"炮塔转向攻击幸存者，\n用力推炮塔以恢复控制！"
+	}
+	"Fire Type"
+	{
+		"chi"	"火焰"
+	}
+	"Type Laser"
+	{
+		"chi"		"激光"
+	}
+	"Type Tesla"
+	{
+		"chi"		"特斯拉"
+	}
+	"Type Freeze"
+	{
+		"chi"		"冷冻"
+	}
+	"Type Nauseating"
+	{
+		"chi"		"令人恶心"
+	}
+	"Basic Menu"
+	{
+		"chi"		"加特林枪"
+	}
+	"Advanced Menu"
+	{
+		"chi"		"便携式炮塔"
+	}
+	"Main Menu Title"
+	{
+		"chi"		"选择类型"
+	}
+	"Gatling Basic Machine Gun"
+	{
+		"chi"		"加特林枪"
+	}
+	"50 Cal Basic Machine Gun"
+	{
+		"chi"		"便携式炮塔"
+	}
+	"Secondary Menu Basic Machine Guns"
+	{
+		"chi"		"选择弹药类型"
+	}
+	"Damaged Machine Gun"
+	{
+		"chi"		"你的炮塔已被摧毁！"
+	}
+	"Secondary Menu Advanced Machine Gun"
+	{
+		"chi"		"选择弹药类型"
+	}
+	"Use instructor"
+	{
+		"chi"		"使用教官"
+	}
+	"Gatling Fire-Type"
+	{
+		"chi"		"火焰"
+	}
+	"Target Reached"
+	{
+		"chi"		"%N 被冻结了！"
+	}
+	"Gatling Laser-Type"
+	{
+   		"chi"		"激光"
+	}
+	"Gatling Freeze-Type"
+	{
+
+		"chi"		"冷冻"
+	}
+	"Gatling Nauseating-Type"
+	{
+
+		"chi"		"令人恶心"
+	}	
+	"Gatling Tesla-Type"
+	{
+		"chi"		"特斯拉"
+	}
+	"50 Cal Normal"
+	{
+		"chi"		"正常"
+	}
+	"Model 50 Cal"
+	{
+		"chi"		"便携式炮塔"
+	}
+	"50 Cal Tesla-Type"
+	{
+
+		"chi"		"特斯拉"
+	}
+	"50 Cal Freeze-Type"
+	{
+
+		"chi"		"冷冻"
+	}
+	"50 Cal Fire-Type"
+	{
+
+		"chi"		"火焰"
+	}
+	"50 Cal Laser-Type"
+	{
+
+		"chi"	  "激光"
+	}
+	"Cal 50 Nauseating-Type"
+	{
+
+		"chi"	  "令人恶心"
+	}
+}

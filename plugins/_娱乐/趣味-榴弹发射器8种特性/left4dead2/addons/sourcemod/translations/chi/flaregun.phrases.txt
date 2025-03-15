@@ -1,0 +1,83 @@
+"Phrases"
+{
+	"Equipped"
+	{
+		"chi" "榴弹发射器已设置为 {green}<MODE>{olive}. 如要改种类, 聊天框输入 {green}!flaregun{olive} 或是 按住滚轮."
+	}
+	"MenuTitle"
+	{
+		"chi" "榴弹发射器种类"
+	}
+	"TitleDefault"
+	{
+		"chi" "榴弹 (原本默认)"
+	}
+	"TitleBounce"
+	{
+		"chi" "弹力球 (火光, 不爆炸)"
+	}
+	"TitleFlare"
+	{
+		"chi" "火球炸弹 (会爆炸)"
+	}
+	"TitleHoming"
+	{
+		"chi" "遥控飞弹 (滑鼠操控)"
+	}
+	"TitleJump"
+	{
+		"chi" "跳跃弹"
+	}
+	"TitleRemote"
+	{
+		"chi" "引爆弹 (右键爆炸)"
+	}
+	"TitleSticky"
+	{
+		"chi" "信号弹 (不会爆炸)"
+	}
+	"TitleSensor"
+	{
+		"chi" "感应弹"
+	}
+	"TitleTimed"
+	{
+		"chi" "定时炸弹"
+	}
+	"TypeDefault"
+	{
+		"chi" "预设榴弹，没有特效."
+	}
+	"TypeBounce"
+	{
+		"chi" "弹力球，碰到的僵尸均会着火."
+	}
+	"TypeFlare"
+	{
+		"chi" "有火光并且爆炸."
+	}
+	"TypeHoming"
+	{
+		"chi" "发射之后附着地面之前可使用鼠标遥控飞弹."
+	}
+	"TypeJump"
+	{
+		"chi" "附着在地面之后，跳跃经过时按下右键引爆会飞起来."
+	}
+	"TypeRemote"
+	{
+		"chi" "按下鼠标右键遥控引爆."
+	}
+	"TypeSensor"
+	{
+		"chi" "附着地面之后，僵尸经过时自动引爆."
+	}
+	"TypeSticky"
+	{
+		"chi" "信号弹照明区域."
+	}
+	"TypeTimed"
+	{
+		"chi" "附着在地面 <TIME> 秒之后爆炸."
+	}
+}

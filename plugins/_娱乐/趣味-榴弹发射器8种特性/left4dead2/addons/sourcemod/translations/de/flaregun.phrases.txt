@@ -1,0 +1,83 @@
+"Phrases"
+{
+	"Equipped"
+	{
+		"de"		"Granatwerfer Modus ist eingestellt auf {green}<MODE>{olive}. Zum Ändern schreibe {green}!flaregun{olive} im Chat."
+	}
+	"MenuTitle"
+	{
+		"de"		"Leuchtpistolen Typ"
+	}
+	"TitleDefault"
+	{
+		"de"		"Standard (Granatwerfer)"
+	}
+	"TitleBounce"
+	{
+		"de"		"Abprallgeschoss (entzündet, keine Explosion)"
+	}
+	"TitleFlare"
+	{
+		"de"		"Leuchtkugel (Standard Explosion)"
+	}
+	"TitleHoming"
+	{
+		"de"		"Lenkrakete"
+	}
+	"TitleJump"
+	{
+		"de"		"Sprung Granate"
+	}
+	"TitleRemote"
+	{
+		"de"		"Ferngesteuert (Rechtsklick)"
+	}
+	"TitleSticky"
+	{
+		"de"		"Haftleuchtkugel (keine Explosion)"
+	}
+	"TitleSensor"
+	{
+		"de"		"Sensorbombe"
+	}
+	"TitleTimed"
+	{
+		"de"		"Zeitbombe"
+	}
+	"TypeDefault"
+	{
+		"de"		"Normaler Granatwerfer ohne Effekte und mit Standard Explosion."
+	}
+	"TypeBounce"
+	{
+		"de"		"Prallt ab und entzündet Infizierte und Explosives."
+	}
+	"TypeFlare"
+	{
+		"de"		"Leuchtkugel mit Standard Schaden und Explosion des Granatwerfers."
+	}
+	"TypeHoming"
+	{
+		"de"		"Projektile können an die Stelle gesteuert werden, auf die du zielst."
+	}
+	"TypeJump"
+	{
+		"de"		"Projektile haften an Oberflächen und katapultieren dich durch die Luft, wenn du über sie springst und dann Rechtsklick drückst."
+	}
+	"TypeRemote"
+	{
+		"de"		"Projektile haften an Oberflächen und explodieren, wenn du Rechtsklick drückst."
+	}
+	"TypeSensor"
+	{
+		"de"		"Projektile haften an Oberflächen und explodieren, wenn gewöhnliche oder besondere Infizierte in ihre Nähe kommen."
+	}
+	"TypeSticky"
+	{
+		"de"		"Haftet an Oberflächen und erhellt die Umgebung."
+	}
+	"TypeTimed"
+	{
+		"de"		"Projektile haften an Oberflächen und explodieren nach <TIME>."
+	}
+}

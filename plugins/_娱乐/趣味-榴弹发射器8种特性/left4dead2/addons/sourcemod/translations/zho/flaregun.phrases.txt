@@ -1,0 +1,83 @@
+"Phrases"
+{
+	"Equipped"
+	{
+		"zho"		"榴彈發射器已設置為 {green}<MODE>{olive}. 如要改種類, 聊天框輸入 {green}!flaregun{olive} 或是 按住滾輪."
+	}
+	"MenuTitle"
+	{
+		"zho"		"榴彈發射器種類"
+	}
+	"TitleDefault"
+	{
+		"zho"		"榴彈 (原本預設)"
+	}
+	"TitleBounce"
+	{
+		"zho"		"彈力球 (火光, 不爆炸)"
+	}
+	"TitleFlare"
+	{
+		"zho"		"火球炸弹 (會爆炸)"
+	}
+	"TitleHoming"
+	{
+		"zho"		"遙控飛彈 (滑鼠操控)"
+	}
+	"TitleJump"
+	{
+		"zho"		"跳躍彈"
+	}
+	"TitleRemote"
+	{
+		"zho"		"引爆彈 (右鍵爆炸)"
+	}
+	"TitleSticky"
+	{
+		"zho"		"信號彈 (不會爆炸)"
+	}
+	"TitleSensor"
+	{
+		"zho"		"感應彈"
+	}
+	"TitleTimed"
+	{
+		"zho"		"定時炸彈"
+	}
+	"TypeDefault"
+	{
+		"zho"		"預設榴彈，沒有特效."
+	}
+	"TypeBounce"
+	{
+		"zho"		"彈力球，碰到的殭屍均會著火."
+	}
+	"TypeFlare"
+	{
+		"zho"		"有火光並且爆炸."
+	}
+	"TypeHoming"
+	{
+		"zho"		"發射之後附著地面之前可使用滑鼠遙控飛彈."
+	}
+	"TypeJump"
+	{
+		"zho"		"附著在地面之後，跳躍經過時按下右鍵引爆會飛起來."
+	}
+	"TypeRemote"
+	{
+		"zho"		"按下滑鼠右鍵遙控引爆."
+	}
+	"TypeSensor"
+	{
+		"zho"		"附著地面之後，殭屍經過時自動引爆."
+	}
+	"TypeSticky"
+	{
+		"zho"		"信號彈照明區域."
+	}
+	"TypeTimed"
+	{
+		"zho"		"附著在地面 <TIME> 秒之後爆炸."
+	}
+}

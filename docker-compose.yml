@@ -17,6 +17,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - ./data/addons/:/home/steam/l4d2server/left4dead2/addons/
       - ./data/cfg/server.cfg:/home/steam/l4d2server/left4dead2/cfg/server.cfg:ro
       - ./data/cfg/:/home/steam/l4d2server/left4dead2/cfg/
