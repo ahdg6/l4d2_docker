@@ -110,9 +110,20 @@ RUN --mount=type=secret,id=STEAM_USERNAME \
     # 删掉不需要的 motd/host 文件
     rm -f "${GAME_DIR}/motd.txt" "${GAME_DIR}/host.txt"
 
+###########################################################################
+# =============== 3) builder-go 阶段：编译 entrypoint.go ==================
+###########################################################################
+FROM golang:1.20-alpine AS builder-go
+
+# 设定工作目录，并复制 Go 源码（假设 entrypoint.go 位于当前上下文中）
+WORKDIR /app
+COPY entrypoint.go .
+
+# 编译为静态二进制文件
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o entrypoint .
 
 ###########################################################################
-# =============== 3) final 阶段：拷贝产物 + 准备运行环境 ====================
+# =============== 4) final 阶段：拷贝产物 + 准备运行环境 ====================
 ###########################################################################
 FROM base
 
@@ -129,25 +140,15 @@ USER root
 # 1) 从 builder 拷贝 L4D2 服务器文件 + steamcmd
 COPY --from=builder "${SERVER_DIR}" "${SERVER_DIR}"
 COPY --from=builder "${STEAMCMD_DIR}" "${STEAMCMD_DIR}"
-
-# 2) 统一把服务器目录的所有权改成 steam 用户，避免后续写权限问题
 RUN chown -R steam:steam "${SERVER_DIR}" && \
     chown -R steam:steam "${STEAMCMD_DIR}"
 
-# 3) 在 ~/.steam/sdk32 建立符号链接，让 SRCDS 能找到 steamclient.so
+COPY --from=builder-go /app/entrypoint /entrypoint
+RUN chown steam:steam /entrypoint && chmod +x /entrypoint
+
 RUN mkdir -p /home/steam/.steam/sdk32 && \
     ln -s "${STEAMCMD_DIR}/linux32/steamclient.so" /home/steam/.steam/sdk32/steamclient.so && \
     chown -R steam:steam /home/steam/.steam
-
-# 4) 如果想进一步精简镜像，又不打算在容器内更新，可以删除 steamcmd
-# RUN rm -rf "${STEAMCMD_DIR}"
-
-#
-# 复制并设置 entrypoint
-# 你可以自行把这个 entrypoint.sh 放在项目同目录
-#
-COPY entrypoint.sh /entrypoint.sh
-RUN chown steam:steam /entrypoint.sh && chmod +x /entrypoint.sh
 
 # 切回 steam 用户，设定工作目录
 USER steam
@@ -156,8 +157,5 @@ WORKDIR "${HOME_DIR}"
 # 暴露常见端口
 EXPOSE 27015 27015/udp
 
-# 如果想把 cfg/server.cfg、motd.txt 等做成数据卷，也可以加:
-# VOLUME ["${GAME_DIR}/addons", "${GAME_DIR}/cfg/server.cfg", "${GAME_DIR}/motd.txt", "${GAME_DIR}/host.txt"]
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint"]
 CMD ["-secure", "+exec", "server.cfg", "+map", "c1m1_hotel", "-port", "27015"]
