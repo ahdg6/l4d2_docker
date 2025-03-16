@@ -120,7 +120,7 @@ WORKDIR /app
 COPY entrypoint.go .
 
 # 编译为静态二进制文件
-RUN CGO_ENABLED=0 GOOS=linux go build -a -o entrypoint .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o entrypoint entrypoint.go
 
 ###########################################################################
 # =============== 4) final 阶段：拷贝产物 + 准备运行环境 ====================
@@ -137,18 +137,19 @@ ENV STEAMCMD_DIR=/home/steam/steamcmd
 # 以 root 身份复制文件
 USER root
 
-# 1) 从 builder 拷贝 L4D2 服务器文件 + steamcmd
+# 从 builder 拷贝 L4D2 服务器文件 + steamcmd
 COPY --from=builder "${SERVER_DIR}" "${SERVER_DIR}"
 COPY --from=builder "${STEAMCMD_DIR}" "${STEAMCMD_DIR}"
 RUN chown -R steam:steam "${SERVER_DIR}" && \
     chown -R steam:steam "${STEAMCMD_DIR}"
 
-COPY --from=builder-go /app/entrypoint /entrypoint
-RUN chown steam:steam /entrypoint && chmod +x /entrypoint
-
 RUN mkdir -p /home/steam/.steam/sdk32 && \
     ln -s "${STEAMCMD_DIR}/linux32/steamclient.so" /home/steam/.steam/sdk32/steamclient.so && \
     chown -R steam:steam /home/steam/.steam
+
+# 从 builder-go 拷贝编译好的启动入口
+COPY --from=builder-go /app/entrypoint /entrypoint
+RUN chown steam:steam /entrypoint && chmod +x /entrypoint
 
 # 切回 steam 用户，设定工作目录
 USER steam

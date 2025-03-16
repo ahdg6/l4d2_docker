@@ -24,4 +24,6 @@ services:
       - ./data/host.txt:/home/steam/l4d2server/left4dead2/host.txt:ro
       - ./data/motd.txt:/home/steam/l4d2server/left4dead2/motd.txt:ro
       - ./plugins:/plugins
-    command: "-secure +exec server.cfg +map c1m1_hotel -port 37015 -tickrate 96"
+      - ./maps:/plugins/maps
+      - ./entrypoint:/entrypoint
+    command: "-insecure -nomaster -condebug +exec server.cfg -port 37015 -tickrate 96"
