@@ -132,7 +132,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -o entrypoint entrypoint.go
 ###########################################################################
 # =============== 4) final 阶段：拷贝产物 + 准备运行环境 ====================
 ###########################################################################
-FROM base
+FROM builder
 
 # 复制相同的环境变量
 ENV STEAM_USER=steam
@@ -141,12 +141,12 @@ ENV SERVER_DIR=/home/steam/l4d2server
 ENV GAME_DIR=/home/steam/l4d2server/left4dead2
 ENV STEAMCMD_DIR=/home/steam/steamcmd
 
-# 以 root 身份将文件从 builder 阶段复制到 final 阶段
-USER root
-
-# 复制游戏文件并做权限矫正
-COPY --from=builder "${SERVER_DIR}" "${SERVER_DIR}"
-RUN chown -R steam:steam "${SERVER_DIR}"
+## 以 root 身份将文件从 builder 阶段复制到 final 阶段
+#USER root
+#
+## 复制游戏文件并做权限矫正
+#COPY --from=builder "${SERVER_DIR}" "${SERVER_DIR}"
+#RUN chown -R steam:steam "${SERVER_DIR}"
 
 ## 创建 .steam/sdk32 并软链接 steamclient.so（某些 mod/插件需要这个）
 #COPY --from=builder "${STEAMCMD_DIR}" "${STEAMCMD_DIR}"
@@ -159,9 +159,9 @@ RUN chown -R steam:steam "${SERVER_DIR}"
 COPY --from=builder-go /app/entrypoint /entrypoint
 RUN chown steam:steam /entrypoint && chmod +x /entrypoint
 
-# 切回 steam 用户，设定工作目录
-USER steam
-WORKDIR "${HOME_DIR}"
+## 切回 steam 用户，设定工作目录
+#USER steam
+#WORKDIR "${HOME_DIR}"
 
 # 暴露服务器端口
 EXPOSE 27015/udp
