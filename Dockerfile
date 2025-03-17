@@ -142,7 +142,7 @@ ENV GAME_DIR=/home/steam/l4d2server/left4dead2
 ENV STEAMCMD_DIR=/home/steam/steamcmd
 
 ## 以 root 身份将文件从 builder 阶段复制到 final 阶段
-#USER root
+USER root
 #
 ## 复制游戏文件并做权限矫正
 #COPY --from=builder "${SERVER_DIR}" "${SERVER_DIR}"
@@ -159,9 +159,9 @@ ENV STEAMCMD_DIR=/home/steam/steamcmd
 COPY --from=builder-go /app/entrypoint /entrypoint
 RUN chown steam:steam /entrypoint && chmod +x /entrypoint
 
-## 切回 steam 用户，设定工作目录
-#USER steam
-#WORKDIR "${HOME_DIR}"
+# 切回 steam 用户，设定工作目录
+USER steam
+WORKDIR "${HOME_DIR}"
 
 # 暴露服务器端口
 EXPOSE 27015/udp
