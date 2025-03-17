@@ -61,7 +61,7 @@ int
 	g_iType[MAXPLAYERS + 1],
 	g_iPos[MAXPLAYERS + 1][2];
 
-static const char
+char
 	g_sLangCode[][] = {
 		"en",
 		"chi"
@@ -103,7 +103,7 @@ public void OnPluginStart() {
 	g_cvNotifyMapNext =	CreateConVar("notify_map_next", "1", "终局开始后提示投票下一张地图的方式. \n0=不提示, 1=聊天栏, 2=屏幕中央, 4=弹出菜单.", FCVAR_NOTIFY);
 	g_cvNotifyMapNext.AddChangeHook(CvarChanged);
 
-	AutoExecConfig(true, "l4d2_map_vote");//生成指定文件名的CFG.
+	//AutoExecConfig(true);
 
 	g_cvMPGameMode = FindConVar("mp_gamemode");
 	g_cvMPGameMode.AddChangeHook(CvarChanged_Mode);

@@ -26,10 +26,10 @@ enum {
 	FINALE_CHANGE_CREDITS_END	= 8
 }
 
-static const char
+char
 	g_sValveMaps[][][] = {
 		{"c14m2_lighthouse",		"c1m1_hotel",			"死亡中心"		},
-		{"c1m4_atrium",				"c2m1_highway",			"黑色狂欢节"	},
+		{"c1m4_atrium",				"c2m1_highway",			"黑色狂欢节"		},
 		{"c2m5_concert",			"c3m1_plankcountry",	"沼泽激战"		},
 		{"c3m4_plantation",			"c4m1_milltown_a",		"暴风骤雨"		},
 		{"c4m5_milltown_escape",	"c5m1_waterfront",		"教区"			},
@@ -122,13 +122,13 @@ public void OnPluginStart() {
 	CreateConVar("map_changer_version", PLUGIN_VERSION, "Map Changer plugin version.", FCVAR_NOTIFY|FCVAR_DONTRECORD);
 
 	g_cvFinaleChangeType = 		CreateConVar("mapchanger_finale_change_type",		"12",	"0 - 终局不换地图(返回大厅); 1 - 救援载具离开时; 2 - 终局获胜时; 4 - 统计屏幕出现时; 8 - 统计屏幕结束时", CVAR_FLAGS);
-	g_cvFinaleFailureCount =	CreateConVar("mapchanger_finale_failure_count",		"2",	"终局团灭几次自动换到下一张图", CVAR_FLAGS);
+	g_cvFinaleFailureCount =	CreateConVar("mapchanger_finale_failure_count",		"0",	"终局团灭几次自动换到下一张图", CVAR_FLAGS);
 	g_cvFinaleRandomNextMap =	CreateConVar("mapchanger_finale_random_nextmap",	"0",	"终局是否启用随机下一关地图", CVAR_FLAGS);
 	g_cvFinaleChangeType.AddChangeHook(CvarChanged);
 	g_cvFinaleFailureCount.AddChangeHook(CvarChanged);
 	g_cvFinaleRandomNextMap.AddChangeHook(CvarChanged);
 
-	AutoExecConfig(true, "map_changer");//生成指定文件名的CFG.
+	//AutoExecConfig(true);
 
 	HookEvent("round_end", 				Event_RoundEnd, 		EventHookMode_PostNoCopy);
 	HookEvent("finale_win", 			Event_FinaleWin,		EventHookMode_PostNoCopy);
